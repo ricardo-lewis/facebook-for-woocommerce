@@ -208,14 +208,22 @@ if ( ! class_exists( 'WC_Facebookcommerce_EventsTracker' ) ) :
 				return;
 			}
 
+			// Ensure posts is a plain array for PHP 8+
+			$__fbwoo_items = $wp_query->posts;
+			if ($__fbwoo_items instanceof \Timber\PostQuery) {
+				$__fbwoo_items = $__fbwoo_items->posts; // Timber\PostQuery → array
+			} elseif ($__fbwoo_items instanceof \Traversable) {
+				$__fbwoo_items = iterator_to_array($__fbwoo_items);
+			}
 			$products = array_values(
 				array_map(
 					function ( $post ) {
 						return wc_get_product( $post );
 					},
-					$wp_query->posts
+					is_array($__fbwoo_items) ? $__fbwoo_items : []
 				)
 			);
+
 
 			// if any product is a variant, fire the pixel with
 			// content_type: product_group
